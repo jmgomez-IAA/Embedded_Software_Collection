@@ -1,0 +1,47 @@
+# Emacs
+*~
+\#*\#
+\#*#
+
+#Confidencial Files
+*bgs2-e_atc_v01301.pdf
+*bgs2_hd_v01301.pdf
+*BGS2-W_AT_Command_Set_V04.030_(05.10.2016).pdf
+
+# Extra files
+*.bak
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+*.obj
+*.map 
+
+# Source Extra Files
+*.list
+*GPATH
+*GTAGS
+*GRTAGS
+
+# Precompiled Headers
+
+# Compiled Dynamic libraries
+
+# Build paths
+bin
+build
+
+# Compiled Static libraries
+.lib
+.a
+
+# Executables
+*.elf
+*.exe
+*.out
+*.app
+*.hex
+*.bin
+

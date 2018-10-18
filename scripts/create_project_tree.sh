@@ -17,7 +17,7 @@
 #####
 
 #Devices debe ser un parametros $2 y plaform $3
-DEVICES=sam4s16c,sam4sd32c,gr712rc,atmega328p,attiny85
+DEVICES=atsam4s16c,atsam4sd32c,gr712rc,atmega328p,attiny85
 PLATFORMS=gr712rc_commercial,gr712rc_ed31,atsam4s-xpro,sensor-mp-v1,arduino-mini
 
 echo
@@ -39,7 +39,7 @@ if [ "$3" != "" ]  #if parameter exists, use for devices
 pwd
 
 
-eval "mkdir -p {documentation,resources,script}"
+eval "mkdir -p {documentation,resources,scripts}"
 
 #Build SRC Hierarchi
 eval "mkdir -p src/{mcal/{$DEVICES},platform/{$PLATFORMS},sys/start/{$DEVICES},util,os}"
