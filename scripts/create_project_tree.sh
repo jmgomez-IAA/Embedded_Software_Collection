@@ -18,7 +18,7 @@
 
 #Devices debe ser un parametros $2 y plaform $3
 DEVICES=atsam4s16c,atsam4sd32c,gr712rc,atmega328p,attiny85
-PLATFORMS=gr712rc_commercial,gr712rc_ed31,atsam4s-xpro,sensor-mp-v1,arduino-mini
+PLATFORMS=gr712rc-commercial,gr712rc-ed31,atsam4s-xpro,sensor-mpv1,arduino-mini
 
 echo
 if [ "$1" != "" ]  #if parameter exists, use as base folder

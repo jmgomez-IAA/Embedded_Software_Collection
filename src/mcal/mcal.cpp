@@ -13,9 +13,6 @@ void mcal::init()
 {
 
   mcal::cpu::init();
-  mcal::wdt::disable();
-  mcal::irq::init(nullptr);
-  mcal::gpt::init(nullptr);
   mcal::port::init(nullptr);
 
 }
