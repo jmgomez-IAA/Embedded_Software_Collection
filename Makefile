@@ -22,7 +22,7 @@ ARCH = cortex-m4
 CROSS_COMPILE = arm-none-eabi-
 CXX = ${TOOL_PATH}/${CROSS_COMPILE}g++
 LD = ${TOOL_PATH}/${CROSS_COMPILE}g++
-OBJDUMP = ${TOOL_PATH}/${CROSS_COMPILE}objdump 
+OBJDUMP = ${TOOL_PATH}/${CROSS_COMPILE}objdump
 SIZE = ${TOOL_PATH}/${CROSS_COMPILE}size
 OBJCOPY = ${TOOL_PATH}/${CROSS_COMPILE}objcopy
 FLASH = ${FLASH_PATH}/edbg
@@ -32,19 +32,19 @@ FLASH = ${FLASH_PATH}/edbg
 INCLUDES = src/
 LIBS = src/
 
-CPPFLAGS =  -mcpu=${ARCH} \
-            -g -O2 -Wall -Wextra -pedantic -fsigned-char -fno-exceptions
-
-CXXFLAGS = -std=c++11
-
 CINCLUDES = -Isrc \
             -Isrc/mcal/${MCAL} \
             -Isrc/hal/${PLATFORM} \
             -Isrc/util/STL \
             -Isrc/sys/start/${MCAL}
 
-LDFLAGS =  -mthumb  -Wl,--start-group -lm  -Wl,--end-group \
-           -L"./src/sys/start/${MCAL}"  -Wl,--gc-sections  -T${MCAL}.ld
+#Use the GCC -ffunction-sections and LD --gc-sections directives to automatically only include used code and data for C sources. This will require linker scripts updated to include the new input sections.
+CPPFLAGS =  -mcpu=${ARCH} --ffunction-sections\
+			-g -O2 -Wall -Wextra -pedantic -fsigned-char -fno-exceptions
+
+CXXFLAGS = -std=c++11
+
+LDFLAGS =  -mthumb -L"./src/sys/start/${MCAL}" -Wl,--gc-sections -T${MCAL}.ld
 
 SRC = src/sys/start/${MCAL}/crt0.cpp \
       src/sys/start/${MCAL}/crt0_init_ram.cpp \
