@@ -42,12 +42,10 @@ namespace mcal
 
     void init(const config_type*);
 
-    value_type get_system_time();
-
     class secure final
     {
 
-      //    private:
+    private:
       static value_type get_time_elapsed();
       friend std::chrono::high_resolution_clock::time_point std::chrono::high_resolution_clock::now();
 

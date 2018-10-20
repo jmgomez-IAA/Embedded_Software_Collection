@@ -11,10 +11,8 @@
 #ifndef _MCAL_UART_SAM4S_EMBEDDED_2018_
 #define _MCAL_UART_SAM4S_EMBEDDED_2018_
 
-
+#include <mcal/mcal.h>
 #include <cstdint>
-#include <mcal_cpu.h>
-#include <mcal_reg_access.h>
 #include <algorithm>
 
 
@@ -148,9 +146,15 @@ namespace mcal
 
   };
 
+    extern mcal::port::port_pin<std::uint32_t,
+                                std::uint32_t,
+                                mcal::reg::piob_base,
+                                UINT32_C(3) > aurt1_tx_pin;
+
     extern uart_communication<std::uint32_t,
                               std::uint8_t,
                               mcal::reg::uart1_base> the_uart;
+
 }
 
 }

@@ -27,11 +27,6 @@ namespace
   }
 }
 
-mcal::gpt::value_type mcal::gpt::get_system_time()
-{
-  return system_tick;
-}
-
 
 void mcal::gpt::init(const config_type*)
 {

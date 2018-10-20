@@ -15,6 +15,7 @@
 #include <mcal_gpt.h>
 #include <mcal_irq.h>
 #include <mcal_port.h>
+#include <mcal_uart.h>
 
 namespace mcal
 {

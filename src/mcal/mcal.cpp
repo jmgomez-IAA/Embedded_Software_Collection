@@ -17,5 +17,6 @@ void mcal::init()
   mcal::irq::init(nullptr);
   mcal::gpt::init(nullptr);
   mcal::port::init(nullptr);
+  mcal::uart::init(nullptr);
 
 }

@@ -9,9 +9,18 @@
 
 #include <mcal_uart.h>
 #include <mcal_cpu.h>
-#include <mcal_port.h>
 #include <mcal_reg_access.h>
 
+
+// UART1 TX on port pin PIOB_3
+mcal::port::port_pin<std::uint32_t,
+                     std::uint32_t,
+                     mcal::reg::piob_base,
+                     UINT32_C(3) > mcal::uart::aurt1_tx_pin;
+
+mcal::uart::uart_communication<std::uint32_t,
+                               std::uint8_t,
+                               mcal::reg::uart1_base> mcal::uart::the_uart;
 
 void mcal::uart::init(const config_type *)
 {
@@ -23,15 +32,9 @@ void mcal::uart::init(const config_type *)
                     static_cast<std::uint32_t>(UINT32_C(0x1 << 9))>::reg_or();
 
 
-  mcal::port::aurt1_tx_pin.periphA_manage_pin();
+  mcal::uart::aurt1_tx_pin.periphA_manage_pin();
 
 }
-
-
-mcal::uart::uart_communication<std::uint32_t,
-                               std::uint8_t,
-                               mcal::reg::uart1_base> mcal::uart::the_uart;
-
 
 /*
 extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));

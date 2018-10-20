@@ -39,7 +39,7 @@ CINCLUDES = -Isrc \
             -Isrc/sys/start/${MCAL}
 
 #Use the GCC -ffunction-sections and LD --gc-sections directives to automatically only include used code and data for C sources. This will require linker scripts updated to include the new input sections.
-CPPFLAGS =  -mcpu=${ARCH} --ffunction-sections\
+CPPFLAGS =  -mcpu=${ARCH} -ffunction-sections\
 			-g -O2 -Wall -Wextra -pedantic -fsigned-char -fno-exceptions
 
 CXXFLAGS = -std=c++11
@@ -56,26 +56,47 @@ SRC = src/sys/start/${MCAL}/crt0.cpp \
       src/mcal/${MCAL}/mcal_wdt.cpp\
       src/mcal/${MCAL}/mcal_port.cpp\
       src/mcal/${MCAL}/mcal_gpt.cpp\
+	  src/mcal/${MCAL}/mcal_uart.cpp\
       src/hal/hal.cpp src/hal/${PLATFORM}/hal_led.cpp\
       src/hal/${PLATFORM}/hal_sw.cpp
 
 OBJ =  $(addprefix $(BUILD_DIR),$(patsubst %.cpp,%.o,$(SRC)))
 
-PROGRAM = src/app/pio_periph_test.cpp
+PROGRAM = src/app/pio_periph_test.cpp src/app/pio_periph_test.cpp src/app/uart_periph_test.cpp
 
 .PHONY = all
 
-all: pio_periph
+all: pio_periph systick_periph uart_periph
 	echo "All done..."
 	echo "sudo ${FLASH} -bpv -t atmel_cm4 -f bin/program_to_test.elf.bin"
 
+$(BIN_DIR)systick_periph_test.elf: $(BUILD_DIR)src/app/systick_periph_test.o $(OBJ)
+	mkdir -p $(@D)
+	${LD} -g $(LDFLAGS) $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/systick_periph_test.map"
+	${SIZE} $@
+	${OBJDUMP} -D -S $@ > $@.list
+
 $(BIN_DIR)pio_periph_test.elf: $(BUILD_DIR)src/app/pio_periph_test.o $(OBJ)
 	mkdir -p $(@D)
-	${LD} -g $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/pio_periph_test.map" $(LDFLAGS)
+	${LD} -g  $(LDFLAGS) $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/pio_periph_test.map"
+	${SIZE} $@
+	${OBJDUMP} -D -S $@ > $@.list
+
+$(BIN_DIR)uart_periph_test.elf: $(BUILD_DIR)src/app/uart_periph_test.o $(OBJ)
+	mkdir -p $(@D)
+	${LD} -g  $(LDFLAGS) $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/uart_periph_test.map"
 	${SIZE} $@
 	${OBJDUMP} -D -S $@ > $@.list
 
 $(BUILD_DIR)src/app/pio_periph_test.o: src/app/pio_periph_test.cpp
+	mkdir -p $(@D)
+	${CXX} $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -o $@ -c $^
+
+$(BUILD_DIR)src/app/systick_periph_test.o: src/app/systick_periph_test.cpp
+	mkdir -p $(@D)
+	${CXX} $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -o $@ -c $^
+
+$(BUILD_DIR)src/app/uart_periph_test.o: src/app/uart_periph_test.cpp
 	mkdir -p $(@D)
 	${CXX} $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -o $@ -c $^
 
@@ -87,6 +108,17 @@ pio_periph: $(BIN_DIR)pio_periph_test.elf
 	echo "Building PIO  Peripheral Test Program."
 	${OBJCOPY} -O ihex $^ $^.hex
 	${OBJCOPY} -O binary $^ $^.bin
+
+systick_periph: $(BIN_DIR)systick_periph_test.elf
+	echo "Building PIO  Peripheral Test Program."
+	${OBJCOPY} -O ihex $^ $^.hex
+	${OBJCOPY} -O binary $^ $^.bin
+
+uart_periph: $(BIN_DIR)uart_periph_test.elf
+	echo "Building PIO  Peripheral Test Program."
+	${OBJCOPY} -O ihex $^ $^.hex
+	${OBJCOPY} -O binary $^ $^.bin
+
 
 clean:
 	rm bin build -rf
