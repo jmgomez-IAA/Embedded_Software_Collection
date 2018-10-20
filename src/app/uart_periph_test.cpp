@@ -9,10 +9,8 @@
  *
  *
  * The Configuration is Baudrate 9600, 8N1.
- * There is a makefile to build, Makefile-Uart_test.
- * make -f Makefile-Uart_test clean
- * make -f Makefile-Uart_test binary
- * sudo make -f Makefile-Uart_test flash
+ * To Build the application.
+ * sudo make uart-periph
  *
  * For verification, a ttyUSB0 adaptor:
  * sudo screen 9600,cs0
