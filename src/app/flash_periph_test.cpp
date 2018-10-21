@@ -35,6 +35,8 @@
 #include <hal/hal.h>
 #include <util/utility/util_time.h>
 
+#include <array>
+
 namespace{
   typedef util::timer<std::uint32_t> timer_type;
 }
@@ -54,32 +56,48 @@ int main()
 
   std::uint32_t flash_cmd_key = (0x5A << 24);
   std::uint32_t *page_buffer= reinterpret_cast<std::uint32_t*>(0x00410000);
+
+
   std::uint32_t page_number = 128 << 8; // (0x82 << 8);
 
 
   mcal::init();
   hal::init();
 
+  std::array<std::uint32_t, 128> flash_write_buffer;
+
+  for(auto &it: flash_write_buffer)
+    {
+      it = 0xabcdef41;
+    }
+
+
+    mcal::uart::the_uart.send_n( flash_write_buffer.begin(), flash_write_buffer.end());
+    timer_type::blocking_delay(timer_type::milliseconds(100U));
+
+
+
   // Start with led OFF.
   hal::led::user_led_pin.set_pin_high();
+
   /**
    * Latch Buffer is the buffer, it is only accesign the addresses
    */
   volatile std::uint32_t *latch_buffer_start= page_buffer;
 
-  for (std::uint32_t i=0; i < 0x80; ++i)
-    {
-      (*latch_buffer_start) = pattern | i;
-      latch_buffer_start++;
-    }
+  const std::uint32_t op_status = mcal::flash::flash_access<std::uint32_t,
+                                                            std::uint32_t,
+                                                            mcal::reg::eefc0_base,
+                                                            0x80>::pag_write(flash_write_buffer.begin(),
+                                                                             flash_write_buffer.end(),
+                                                                             reinterpret_cast<std::uint32_t *>(0x410000));
 
-  //Send the Write Command.
-  (*eefc_fcr) = (flash_cmd_key | page_number | write_page_cmd );
 
   //Wait for the operation to be executed.
-  timer_type::blocking_delay(timer_type::milliseconds(100U));
+  timer_type::blocking_delay(timer_type::seconds(1U));
 
-  if ((*eefc_fsr) & 0x1)
+  if (*eefc_fsr & 0x01)
+    //  if (op_status & 0x01)
     {
       //LED ON: Success
       hal::led::user_led_pin.set_pin_low();

@@ -106,13 +106,21 @@
 
 
       // TWI Peripheral Controller
-      constexpr std::uint32_t twi0_base      = periph_base     + UINT32_C(0x00018000);
-      constexpr std::uint32_t twi1_base      = periph_base     + UINT32_C(0x0001C000);
+      constexpr std::uint32_t twi0_base       = periph_base     + UINT32_C(0x00018000);
+      constexpr std::uint32_t twi1_base       = periph_base     + UINT32_C(0x0001C000);
 
       // ADC Peripheral Controller
-      constexpr std::uint32_t adc_base       = periph_base     + UINT32_C(0x00038000);
+      constexpr std::uint32_t adc_base        = periph_base     + UINT32_C(0x00038000);
 
       constexpr std::uint32_t flash_r_base    = ahb1periph_base + UINT32_C(0x00003C00);
+
+      // EEFC Flash controller registers.
+      constexpr std::uint32_t eefc0_base      = periph_base     + UINT32_C(0x000E0A00);
+      constexpr std::uint32_t eefc1_base      = periph_base     + UINT32_C(0x000E0C00);
+      constexpr std::uint32_t eefc_fmr        = eefc0_base      + UINT32_C(0x00000000);
+      constexpr std::uint32_t eefc_fcr        = eefc0_base      + UINT32_C(0x00000004);
+      constexpr std::uint32_t eefc_fsr        = eefc0_base      + UINT32_C(0x00000008);
+      constexpr std::uint32_t eefc_frr        = eefc0_base      + UINT32_C(0x0000000C);
 
       // Peripheral Memory Map Registers
 

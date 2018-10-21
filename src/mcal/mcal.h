@@ -16,6 +16,7 @@
 #include <mcal_irq.h>
 #include <mcal_port.h>
 #include <mcal_uart.h>
+#include <mcal_flash.h>
 
 namespace mcal
 {
