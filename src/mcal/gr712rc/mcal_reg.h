@@ -45,6 +45,11 @@ constexpr std::uint32_t  mem_cfg2_value          = 0x8a206000UL; // Disable SRAM
 // Read-Solomon is not availble, only 8 bits of EDAC in the Memories.
 constexpr std::uint32_t  mem_cfg3_value          = 0x08184000UL; // Disable Reed-Solomon EDAC SDRAM:off;  EDAC SDRAM:off, RAM:off, PROM:off
 
+// CLOCK Gatting Unit
+constexpr std::uint32_t pcm_unlock_address       = 0x80000D00UL;
+constexpr std::uint32_t pcm_enable_address       = 0x80000D04UL;
+constexpr std::uint32_t pcm_reset_address        = 0x80000D08UL;
+
 // UART Peripheral
 constexpr std::uint32_t timer_base_address       = 0x80000300UL;
 constexpr std::uint32_t timer0_base_address      = 0x80000310UL;

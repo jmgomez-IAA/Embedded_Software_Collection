@@ -49,6 +49,7 @@ LDFLAGS = -T linkcmds-ahbram
 SRC = src/mcal/mcal.cpp \
       src/mcal/${MCAL}/mcal_cpu.cpp\
       src/mcal/${MCAL}/mcal_port.cpp\
+      src/mcal/${MCAL}/mcal_spw.cpp\
       src/hal/hal.cpp src/hal/${PLATFORM}/hal_led.cpp\
       src/hal/${PLATFORM}/hal_sw.cpp
 

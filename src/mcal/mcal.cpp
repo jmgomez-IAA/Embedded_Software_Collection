@@ -14,5 +14,5 @@ void mcal::init()
 
   mcal::cpu::init();
   mcal::port::init(nullptr);
-  //  mcal::spw::init(nullptr);
+  mcal::spw::init(nullptr);
 }

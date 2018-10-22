@@ -20,25 +20,22 @@ namespace spw
 {
 
 typedef void config_type;
+typedef std::uint32_t addr_type;
+typedef std::uint32_t reg_type;
 
-//void init(const config_type*);
+void init(const config_type*);
 
 template <typename port_type,// std::uint32_t
           typename bval_type,// std::uint8_t
-          port_type port>
+          port_type port,
+          port_type recv_descriptor_table_base, // = 0x40001000; // Max Descriptor : 128*8 = 1024
+          port_type send_descriptor_table_base>
 class  spw_communication
 {
  public:
   typedef std::uint32_t addr_type;
   typedef std::uint32_t reg_type;
-  /*
-    typedef array<std::uint32_t,2> recv_descriptor_type;
-    typedef array<std::uint32_t,4> send_descriptor_type;
 
-    typedef array<std::uint32_t,16> header_buffer_type;
-    typedef array<std::uint32_t,256> data_buffer_type;
-    typedef array<std::uint32_t,4> packet_buffer_type;
-  */
   typedef std::uint32_t *recv_descriptor_type;
   typedef std::uint32_t *send_descriptor_type;
 
@@ -301,14 +298,14 @@ class  spw_communication
   static constexpr std::uint32_t header_max_length = 0x10UL; // 16 Bytes.
   static constexpr std::uint32_t data_max_length   = 0x400UL; // 1024 Bytes.
 
-  static constexpr std::uint32_t recv_descriptor_table_base = 0x40001000; // Max Descriptor : 128*8 = 1024
-  static constexpr std::uint32_t send_descriptor_table_base = 0x40002000;
+  //  static constexpr std::uint32_t recv_descriptor_table_base = 0x40001000; // Max Descriptor : 128*8 = 1024
+  //  static constexpr std::uint32_t send_descriptor_table_base = 0x40002000;
   static constexpr std::uint32_t header_buffer_base_addr    = 0x40010000;
   static constexpr std::uint32_t data_buffer_base_addr      = 0x40020000;
   static constexpr std::uint32_t packet_buffer_base_addr    = 0x40030000;
 
-  static constexpr std::uint32_t number_of_recv_desciptor   = 5;
-  static constexpr std::uint32_t number_of_send_desciptor   = 5;
+  static constexpr std::uint32_t number_of_recv_desciptor   = 2;
+  static constexpr std::uint32_t number_of_send_desciptor   = 2;
 
   static constexpr std::uint32_t spw_node_addr = 0xFE;
 

@@ -34,9 +34,6 @@ mcal::port::port_pin<std::uint32_t,
                      mcal::reg::grgpio1_base_address,
                      UINT32_C(26) > gpio26_output_pin;
 
-mcal::spw::spw_communication<std::uint32_t, 
-                             std::uint32_t, //Minimal transmission packet 4 bytes.
-                             mcal::reg::grspw0_base_address> the_spw0;
 
 //Active delay, loops for x time.
 void delay()
@@ -49,6 +46,19 @@ void delay()
 }
 }
 
+  std::array<std::uint32_t,20> spw0_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  std::array<std::uint32_t,20> spw1_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  std::array<std::uint32_t,20> spw2_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  std::array<std::uint32_t,20> spw3_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  std::array<std::uint32_t,20> spw4_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  std::array<std::uint32_t,20> spw5_msg = { 0x21000000, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
+                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+
 
 int main()
 {
@@ -58,14 +68,48 @@ int main()
   constexpr std::array<std::uint8_t,13> welcome_msg = {'\n', '\r', 'U', 'A', 'R', 'T',' ', 'T','e', 's', 't', '\n', '\r'};
   constexpr std::array<std::uint8_t,12> underline_msg = {'=', '=', '=', '=', '=','=', '=','=', '=', '=', '\n', '\r'};
 
-  std::array<std::uint32_t,20> spw_msg = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 
-                                                     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
-
   enum class spw_error : uint32_t  {CREDIT_ERR = 0x02, ESCAPE_ERR = 0x04, DISCONNECT_ERR = 0x08, 
       PARITY_ERR = 0x10, INVALID_ADDR_ERR = 0x80, END_OF_PACKET_ERR = 0x100 };
 
   mcal::init();
   hal::init();
+
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw0_base_address,
+                               0x40001000,
+                               0x40002000> the_spw0;
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw1_base_address,
+                               0x40003000,
+                               0x40004000> the_spw1;
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw2_base_address,
+                               0x40005000,
+                               0x40006000> the_spw2;
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw3_base_address,
+                               0x40007000,
+                               0x40008000> the_spw3;
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw4_base_address,
+                               0x40009000,
+                               0x4000A000> the_spw4;
+
+  mcal::spw::spw_communication<std::uint32_t, 
+                               std::uint32_t, //Minimal transmission packet 4 bytes.
+                               mcal::reg::grspw5_base_address,
+                               0x4000B000,
+                               0x4000C000> the_spw5;
 
   gpio26_output_pin.set_direction_output();
 
@@ -87,8 +131,8 @@ int main()
     {
       //      the_spw0.send(def_pattern | counter);
 
-      spw_msg.at(0) = counter;
-      the_spw0.send_n(spw_msg.begin(), spw_msg.end());
+      spw0_msg.at(0) |= counter;
+      the_spw0.send_n( spw0_msg.begin(), spw0_msg.end() );
       counter ++;
     }
 
@@ -96,8 +140,6 @@ int main()
     gpio26_output_pin.toggle_pin();
           
   }
-
-
 
   return 0;
 }
