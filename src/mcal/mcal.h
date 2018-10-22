@@ -11,10 +11,8 @@
 #define _MCAL_ESC_2018_
 
 #include <mcal_cpu.h>
-//#include <mcal_wdt.h>
-//#include <mcal_gpt.h>
-//#include <mcal_irq.h>
 #include <mcal_port.h>
+#include <mcal_spw.h>
 
 namespace mcal
 {
