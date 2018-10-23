@@ -23,6 +23,20 @@ typedef void config_type;
 typedef std::uint32_t addr_type;
 typedef std::uint32_t reg_type;
 
+typedef struct 
+{  
+  std::uint32_t control;  
+  std::uint32_t packet_buffer_address;
+} receiv_descriptor_t;
+
+typedef struct 
+{
+  std::uint32_t control;
+  std::uint32_t header_buffer_address;
+  std::uint32_t data_buffer_length;
+  std::uint32_t data_buffer_address;
+} send_descriptor_t;
+
 void init(const config_type*);
 
 template <typename port_type,// std::uint32_t
@@ -35,9 +49,6 @@ class  spw_communication
  public:
   typedef std::uint32_t addr_type;
   typedef std::uint32_t reg_type;
-
-  typedef std::uint32_t *recv_descriptor_type;
-  typedef std::uint32_t *send_descriptor_type;
 
   typedef std::uint32_t *header_buffer_type;
   typedef std::uint32_t *data_buffer_type;
@@ -59,14 +70,14 @@ class  spw_communication
                       static_cast<std::uint32_t>(UINT32_C(0x00000400))>::reg_set();
 
     // Set the base addr of the Spacewire Recv Descriptor Table.
-    configure_recv_descriptors( number_of_recv_desciptor);
+    configure_recv_descriptors( number_of_recv_descriptor);
     mcal::reg::access<addr_type,
                       reg_type,
                       dma_rx_descriptor_register,
                       recv_descriptor_table_base>::reg_set();
 
     // Set the base addr of the Spacewire Transmit Descriptor Table.
-    configure_send_descriptors( number_of_send_desciptor);
+    configure_send_descriptors( number_of_send_descriptor);
     mcal::reg::access<addr_type,
                       reg_type,
                       dma_tx_descriptor_register,
@@ -112,6 +123,7 @@ class  spw_communication
   bool send(const bval_type byte_to_send)
   {
 
+    /*
     if ( send_is_active )
     {
       return false;
@@ -146,10 +158,10 @@ class  spw_communication
         (* desc_ptr ) = 0x0031000 | hbuff_size;
       else
         (* desc_ptr ) = 0x0033000 | hbuff_size;
-      /*
-      mcal::reg::dynamic_access<addr_type,
-                                reg_type>::reg_set(data_buffer, static_cast<bval_type>(byte_to_send));
-*/
+      
+      //      mcal::reg::dynamic_access<addr_type,
+      //                        reg_type>::reg_set(data_buffer, static_cast<bval_type>(byte_to_send));
+
 
     // enable the transmision of the actual descriptor.
     mcal::reg::access<addr_type,
@@ -159,6 +171,7 @@ class  spw_communication
 
       send_is_active = false;
     }
+*/
     return true;
   }
 
@@ -168,41 +181,43 @@ class  spw_communication
   {
     bool send_result = true;
 
+    //std::uint32_t send_descriptor_it = 0;
+    //std::uint32_t recv_descriptor_it = 0;
+
+    // Check if the descriptor is already in use.
+    const std::uint32_t descriptor_status = send_descriptor_table[send_descriptor_it].control;
+    if ( descriptor_status & 0x00001000 )
+      return false;
+
+    send_is_active = true;
+
     typedef typename
         std::iterator_traits<send_iterator_type>::value_type
         send_value_type;
 
-    const send_value_type value(*first);
+    //    const send_value_type value(*first);
     std::uint32_t dbuff_size = sizeof(send_value_type)*(last-first);
 
-    send_is_active = true;
-
-      // Get the descriptor in use.
-    const std::uint32_t send_descriptor_address =  mcal::reg::access<addr_type,
-                                                                     reg_type,
-                                                                     dma_tx_descriptor_register>::reg_get();
-
-    const std::uint32_t desc_number = (send_descriptor_address & 0x3FF) >> 4;
-
-    // Fill the descriptor data, control, header_ptr and data_ptr.
-    send_descriptor_type desc_ptr =  send_descriptor_table + 4*desc_number;
-
-    std::uint32_t hbuff_size = 8;
-    (* (desc_ptr+1)) = reinterpret_cast<std::uint32_t>(first);   //Header is the first 16Bytes of the buffer.
-    (* (desc_ptr+2)) = dbuff_size-0x10; //0x400;Size of the data max.
-    (* (desc_ptr+3)) = reinterpret_cast<std::uint32_t>(first+0x10); //Data is the rest of the packet.
-
-    if (desc_number < (number_of_send_desciptor-1) ) 
-      (* desc_ptr ) = 0x0031000 | hbuff_size;
-    else
-      (* desc_ptr ) = 0x0033000 | hbuff_size;
 
 
-    // enable the transmision of the actual descriptor.
+    send_descriptor_table[send_descriptor_it].header_buffer_address = reinterpret_cast<std::uint32_t>(first);
+    send_descriptor_table[send_descriptor_it].data_buffer_length =  dbuff_size;
+    send_descriptor_table[send_descriptor_it].data_buffer_address = reinterpret_cast<std::uint32_t>(first + 0x10);
+
+    // Activate Enable Flag and set the header size.
+    send_descriptor_table[send_descriptor_it].control |= 0x00001000 | 0x8;
+
+    send_descriptor_it ++;
+    //If WRAP enabled, next descriptor is 0.
+    if ( descriptor_status & 0x00002000 )
+      send_descriptor_it = 0;
+
+    // enable the transmision of the Core. That migh be done once.
     mcal::reg::access<addr_type,
                       reg_type,
                       dma_ctrl_register,
                       static_cast<std::uint32_t>(UINT32_C(0x00000001))>::reg_or();
+
     send_is_active = false;
 
     return send_result;
@@ -241,26 +256,19 @@ class  spw_communication
    */
   bool configure_send_descriptors(std::uint32_t number_descriptors)
   {
-    std::uint32_t desc_number;
-    send_descriptor_type desc_it =  send_descriptor_table;
 
-    desc_number = 0;
-    while( desc_number < (number_descriptors-1))
+    for (std::uint32_t i = 0; i < number_descriptors; ++i)
     {
-      (* desc_it )    = 0x003000F;
-      (* (desc_it+1)) = header_buffer_base_addr + desc_number*header_max_length;
-      (* (desc_it+2)) = 0x4; //0x400;
-      (* (desc_it+3)) = data_buffer_base_addr + desc_number*data_max_length;
-
-      desc_it += 4;
-      desc_number ++;
+      //Append the Header and Data Checksums. Disabled yet.
+      send_descriptor_table[i].control = 0x00030000 | def_header_lengh;
+      send_descriptor_table[i].header_buffer_address = reinterpret_cast<std::uint32_t>(def_header);
+      send_descriptor_table[i].data_buffer_length = def_data_lengh;
+      send_descriptor_table[i].data_buffer_address = reinterpret_cast<std::uint32_t>(def_data);
     }
 
-    (* desc_it ) = 0x003200F;
-    (* (desc_it+1)) = header_buffer_base_addr + desc_number*header_max_length;
-    (* (desc_it+2)) = 0x4; //0x400;
-    (* (desc_it+3)) = data_buffer_base_addr + desc_number*data_max_length;
-      
+    // Enable Wrap for the last descriptor.
+    send_descriptor_table[number_descriptors -1 ].control = 0x00032000 | def_header_lengh;
+    send_descriptor_it = 0;
 
     return true;
   }
@@ -270,22 +278,15 @@ class  spw_communication
   bool configure_recv_descriptors(std::uint32_t number_descriptors)
   {
 
-    std::uint32_t it = 0;
-    std::uint32_t desc_number;
-    recv_descriptor_type desc_it =  recv_descriptor_table;
-
-    desc_number = 0;
-    while( desc_number < (number_descriptors-1))
+    for (std::uint32_t i= 0; i < number_descriptors; ++i )
     {
-      (* desc_it )    = 0x02000000;
-      (* (desc_it+1)) = packet_buffer_base_addr + desc_number*packet_max_length;
-
-      desc_it += 2;
-      desc_number ++;
+      recv_descriptor_table[i].control = 0x02000000;
+      recv_descriptor_table[i].packet_buffer_address = packet_buffer_base_addr + i*packet_max_length;
     }
 
-    (* desc_it ) = 0x003300F;
-    (* (desc_it+1)) = packet_buffer_base_addr + desc_number*packet_max_length;
+    // Enable Wrap for the last descriptor.
+    recv_descriptor_table[number_descriptors - 1].control = 0x06000000;
+    recv_descriptor_it = 0;
 
     return true;
   }
@@ -294,28 +295,37 @@ class  spw_communication
 
   bool send_is_active;
 
-  static constexpr std::uint32_t packet_max_length = 0x400UL; // 1024 Bytes.
-  static constexpr std::uint32_t header_max_length = 0x10UL; // 16 Bytes.
-  static constexpr std::uint32_t data_max_length   = 0x400UL; // 1024 Bytes.
+  static constexpr std::uint32_t packet_max_length          = 0x400UL; // 1024 Bytes.
+  static constexpr std::uint32_t header_max_length          = 0x10UL; // 16 Bytes.
+  static constexpr std::uint32_t data_max_length            = 0x400UL; // 1024 Bytes.
 
-  //  static constexpr std::uint32_t recv_descriptor_table_base = 0x40001000; // Max Descriptor : 128*8 = 1024
-  //  static constexpr std::uint32_t send_descriptor_table_base = 0x40002000;
   static constexpr std::uint32_t header_buffer_base_addr    = 0x40010000;
   static constexpr std::uint32_t data_buffer_base_addr      = 0x40020000;
   static constexpr std::uint32_t packet_buffer_base_addr    = 0x40030000;
 
-  static constexpr std::uint32_t number_of_recv_desciptor   = 2;
-  static constexpr std::uint32_t number_of_send_desciptor   = 2;
+  static constexpr std::uint32_t max_send_descriptor         = 128;
+  static constexpr std::uint32_t max_receiv_descriptor       = 64;
+  static constexpr std::uint32_t number_of_send_descriptor   = 5;
+  static constexpr std::uint32_t number_of_recv_descriptor   = 5;
 
+
+  std::uint32_t def_data_lengh   = 4;
+  std::uint32_t def_header_lengh = 4;
+  std::uint32_t def_data[4]      = {0x00000001, 0x00000002, 0x00000003, 0x00000004};
+  std::uint32_t def_header[4]    = {0x00000001, 0x00000002, 0x00000003, 0x00000004};
+
+  std::uint32_t send_descriptor_it = 0;
+  std::uint32_t recv_descriptor_it = 0;
   static constexpr std::uint32_t spw_node_addr = 0xFE;
 
   //Each of this should be build in base a fill using only the aligned part.
-  recv_descriptor_type  recv_descriptor_table = reinterpret_cast<recv_descriptor_type>( recv_descriptor_table_base );
-  send_descriptor_type  send_descriptor_table = reinterpret_cast<send_descriptor_type>( send_descriptor_table_base );
-  header_buffer_type    header_buffer           = reinterpret_cast<header_buffer_type>(  header_buffer_base_addr );
-  data_buffer_type      data_buffer               = reinterpret_cast<data_buffer_type>(  data_buffer_base_addr );
-  packet_buffer_type    packet_buffer           = reinterpret_cast<packet_buffer_type>(  packet_buffer_base_addr );
+  // We already know, there are 128 desc
+  receiv_descriptor_t *  recv_descriptor_table  = reinterpret_cast<receiv_descriptor_t *>( recv_descriptor_table_base );
+  send_descriptor_t   *  send_descriptor_table  = reinterpret_cast<send_descriptor_t *>( send_descriptor_table_base );
 
+  header_buffer_type    header_buffer           = reinterpret_cast<header_buffer_type>(  header_buffer_base_addr );
+  data_buffer_type      data_buffer             = reinterpret_cast<data_buffer_type>(  data_buffer_base_addr );
+  packet_buffer_type    packet_buffer           = reinterpret_cast<packet_buffer_type>(  packet_buffer_base_addr );
 
   static constexpr addr_type ctrl_register                = addr_type(port + 0x00UL);
   static constexpr addr_type status_register              = addr_type(port + 0x04UL);
