@@ -4,6 +4,9 @@
  * @description Modifies a value stored in the Flash and verifies
  * the value is already there after reset.
  *
+ * The test the reads from the flash and check the values are
+ * correctly stored.
+ *
  * make  clean
  * make  flash_periph
  *
