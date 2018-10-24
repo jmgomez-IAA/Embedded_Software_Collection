@@ -1,8 +1,8 @@
 #This Makefile should be modified to include multiple platform.
 # Set some paths for the tools.
 
-PLATFORM=atsam4s-xpro
-MCAL=atsam4sd32c
+PLATFORM=sensor-mp-v1
+MCAL=atsam4s16c
 
 SRC_DIR = src/
 BUILD_DIR = build/
