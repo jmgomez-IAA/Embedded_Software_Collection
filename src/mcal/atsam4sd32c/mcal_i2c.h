@@ -13,13 +13,11 @@
 #define _MCAL_I2C_SAM4S_EMBEDDED_2018_
 
 
+#include <mcal/mcal.h>
 #include <cstdint>
-#include <mcal_cpu.h>
 #include <mcal_reg_access.h>
 #include <algorithm>
 
-
-//extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
 
 namespace mcal
 {
@@ -242,6 +240,27 @@ namespace mcal
                              std::uint8_t,
                              mcal::reg::twi1_base> the_i2c_1;
     */
+    extern mcal::port::port_pin<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::pioa_base,
+                    UINT32_C(4) > twi0_clock_pin;
+
+    extern mcal::port::port_pin<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::pioa_base,
+                    UINT32_C(3) > twi0_data_pin;
+    /*
+      extern mcal::port::port_pin<std::uint32_t,
+      std::uint32_t,
+      mcal::reg::piob_base,
+      UINT32_C(5) > twi1_clock_pin;
+
+      extern mcal::port::port_pin<std::uint32_t,
+      std::uint32_t,
+      mcal::reg::piob_base,
+      UINT32_C(4) > twi1_data_pin;
+    */
+
 }
 
 }

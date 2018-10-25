@@ -17,6 +17,7 @@
 #include <mcal_port.h>
 #include <mcal_uart.h>
 #include <mcal_flash.h>
+#include <mcal_i2c.h>
 
 namespace mcal
 {
