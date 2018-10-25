@@ -86,7 +86,6 @@
       constexpr std::uint32_t pioc_periph_id  = 13;
       constexpr std::uint32_t pioc_base       = periph_base        + UINT32_C(0xE1200);
 
-
       constexpr std::uint32_t piob_per        = piob_base       + UINT32_C(0x00);
       constexpr std::uint32_t piob_pdr        = piob_base       + UINT32_C(0x04);
       constexpr std::uint32_t piob_psr        = piob_base       + UINT32_C(0x08);
@@ -111,6 +110,7 @@
 
       // ADC Peripheral Controller
       constexpr std::uint32_t adc_base        = periph_base     + UINT32_C(0x00038000);
+      constexpr std::uint32_t ad0_data_register =  adc_base     + UINT32_C(0x00000050);
 
       constexpr std::uint32_t flash_r_base    = ahb1periph_base + UINT32_C(0x00003C00);
 
