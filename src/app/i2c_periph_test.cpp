@@ -181,11 +181,11 @@ int main()
       hal::led::user_led_pin.set_pin_low();
       timer_type::blocking_delay(timer_type::seconds(1U));
 
-      /*
+
       mcal::i2c::the_i2c_0.send_read_cmd ();
       mcal::i2c::the_i2c_0.send_start_bit();
 
-      mcal::i2c::the_i2c_0.send(0x00);
+      //      mcal::i2c::the_i2c_0.send(0x00);
       app_timer.start_interval(timer_type::seconds(2U));
       while(counter < 8 && !app_timer.timeout())
         {
@@ -201,10 +201,10 @@ int main()
         }
 
             mcal::i2c::the_i2c_0.send_stop_bit ();
-      */
-      mcal::i2c::the_i2c_0.send_n(  baud_reg_s.begin(),  baud_reg_s.end());
 
-      while(! hal::sw::user_button_pin.read_input_value() &&  (counter < 8) )
+      //      mcal::i2c::the_i2c_0.send_n(  baud_reg_s.begin(),  baud_reg_s.end());
+
+      while( hal::sw::user_button_pin.read_input_value() &&  (counter < 8) )
         {
           // LED OFF
           hal::led::user_led_pin.set_pin_high();

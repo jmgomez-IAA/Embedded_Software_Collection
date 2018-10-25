@@ -12,11 +12,6 @@
 #include <mcal_port.h>
 #include <mcal_reg_access.h>
 
-mcal::i2c::i2c_communication<std::uint32_t,
-                             std::uint8_t,
-                             mcal::reg::twi0_base> mcal::i2c::the_i2c_0;
-
-
 // TWI0 Data and CLK pins, which are connected to PIOA, should be multiplexed
 // in order to be managed with peripheral A.
 mcal::port::port_pin<std::uint32_t,
@@ -43,6 +38,9 @@ mcal::port::port_pin<std::uint32_t,
                      UINT32_C(4) > mcal::port::twi1_data_pin;
 */
 
+mcal::i2c::i2c_communication<std::uint32_t,
+                             std::uint8_t,
+                             mcal::reg::twi0_base> mcal::i2c::the_i2c_0;
 
 void mcal::i2c::init(const config_type *)
 {
