@@ -18,5 +18,6 @@ void mcal::init()
   mcal::gpt::init(nullptr);
   mcal::port::init(nullptr);
   mcal::uart::init(nullptr);
+  mcal::i2c::init(nullptr);
 
 }
