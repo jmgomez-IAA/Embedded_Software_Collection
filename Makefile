@@ -62,6 +62,7 @@ SRC = src/sys/start/${MCAL}/crt0.cpp \
       src/hal/hal.cpp \
 	  src/hal/${PLATFORM}/hal_led.cpp\
       src/hal/${PLATFORM}/hal_sw.cpp\
+	  src/hal/${PLATFORM}/hal_flow.cpp\
 	  src/hal/${PLATFORM}/hal_rele.cpp
 
 OBJ =  $(addprefix $(BUILD_DIR),$(patsubst %.cpp,%.o,$(SRC)))
