@@ -47,6 +47,11 @@ int main()
   unsigned char byte_to_recv = 0;
 
   const std::array<std::uint8_t, 10> i2c_error_s = {'i','2', 'c', ' ','E', 'r', 'r', ':','T', '0'};
+
+  mcal::i2c::i2c_communication<std::uint32_t,
+                               std::uint8_t,
+                               mcal::reg::twi0_base> the_i2c_0;
+
   while (1)
     {
 
@@ -182,17 +187,17 @@ int main()
       timer_type::blocking_delay(timer_type::seconds(1U));
 
 
-      mcal::i2c::the_i2c_0.send_read_cmd ();
-      mcal::i2c::the_i2c_0.send_start_bit();
+      the_i2c_0.send_read_cmd ();
+      the_i2c_0.send_start_bit();
 
       //      mcal::i2c::the_i2c_0.send(0x00);
       app_timer.start_interval(timer_type::seconds(2U));
       while(counter < 8 && !app_timer.timeout())
         {
-          if (mcal::i2c::the_i2c_0.receive_ready() )
+          if (the_i2c_0.receive_ready() )
             {
               //          std::uint32_t byte_to_recv = 0;
-              mcal::i2c::the_i2c_0.recv(byte_to_recv);
+              the_i2c_0.recv(byte_to_recv);
               counter ++;
 
               mcal::uart::the_uart.send(byte_to_recv);
@@ -200,7 +205,7 @@ int main()
             }
         }
 
-            mcal::i2c::the_i2c_0.send_stop_bit ();
+            the_i2c_0.send_stop_bit ();
 
       //      mcal::i2c::the_i2c_0.send_n(  baud_reg_s.begin(),  baud_reg_s.end());
 

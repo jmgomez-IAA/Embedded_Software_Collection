@@ -10,7 +10,6 @@
 #ifndef MCAL_ADC_SAM4SD32C_ESC_H_
 #define MCAL_ADC_SAM4SD32C_ESC_H_
 
-
 #include <cstdint>
 #include <mcal/mcal.h>
 #include <mcal_reg_access.h>
@@ -36,7 +35,7 @@ namespace mcal
       typedef std::uint32_t addr_type;
       typedef std::uint32_t reg_type;
 
-      adc_device() : send_is_active(false)
+      adc_device() : conversion_is_active(false)
       {
         // Enable Rx and Tx
         mcal::reg::access<addr_type,
@@ -72,33 +71,39 @@ namespace mcal
 
       bool read(bval_type &byte_to_send)
       {
+
+        /*
+        const adc_conversion_status =  mcal::reg::access<addr_type,
+                                                         reg_type,
+                                                         interrupt_status_register>::reg_get();*/
         // Conversion is active.
-        if ( send_is_active )
+        if (conversion_is_active )
           {
             return false;
           }
         else{
-          send_is_active = true;
 
           const reg_type channel0_conversion_value = mcal::reg::access<addr_type,
                                                                        reg_type,
                                                                        ad0_data_register>::reg_get();
 
           byte_to_send = static_cast<bval_type>(channel0_conversion_value);
-          send_is_active = false;
+          return true;
         }
-        return true;
       }
 
       bool start()
       {
+
+        if (conversion_is_active)
+          return false;
 
         mcal::reg::access<addr_type,
                           reg_type,
                           adc_ctrl_register,
                           static_cast<std::uint32_t>(UINT32_C(0x00000002))>::reg_set();
 
-
+        conversion_is_active = true;
         return true;
       }
 
@@ -111,8 +116,11 @@ namespace mcal
         return (channel_status & (0x1 << 0));
       }
 
-  private:
-      volatile bool send_is_active;
+      //    protected:
+
+      volatile bool conversion_is_active;
+    private:
+
 
       static constexpr addr_type adc_ctrl_register         = addr_type(port + 0x00UL);
       static constexpr addr_type adc_mode_register         = addr_type(port + 0x04UL);
@@ -144,6 +152,8 @@ namespace mcal
 
 
       //      friend void __vector_uart1_rx_tx_irq();
+      //extern "C" void __vector_adc_handler() __attribute__((used, noinline));
+      friend void __vector_adc_handler();
 
   };
 
@@ -172,7 +182,7 @@ namespace mcal
                                 UINT32_C(0) > adc_mux2_pin;
 
     extern adc_device<std::uint32_t,
-                          std::uint8_t,
+                          std::uint32_t,
                           mcal::reg::adc_base> the_adc;
 
     extern std::uint32_t adc_value;

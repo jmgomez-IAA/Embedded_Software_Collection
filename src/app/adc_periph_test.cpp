@@ -59,6 +59,7 @@ int main()
 
   mcal::uart::the_uart.send_n( welcome_msg_s.begin(), welcome_msg_s.end());
 
+  std::uint32_t adc_conversion_value = 0x12340201;
   while (1)
     {
       byte_to_recv = 0;
@@ -76,25 +77,30 @@ int main()
         }
 
       timer_type::blocking_delay(timer_type::milliseconds(100U));
-
+      /*
       debug_register( pio_reg_s, piob_status_reg);
       debug_register(ctrl_reg_s, ctrl_reg);
       debug_register(status_reg_s, status_reg);
       debug_register(interrupt_reg_s, isr_reg);
       debug_register(ch0data_reg_s, ch0_reg);
+*/
+      const bool adc_conversion_status = mcal::adc::the_adc.read(adc_conversion_value);
 
-
-      //      mcal::adc::the_adc.read();
-      //      mcal::uart::the_uart.send( mcal::adc::adc_value + 0x30);
+      if (adc_conversion_status){
+        mcal::uart::the_uart.send_n( ch0data_reg_s.begin(), ch0data_reg_s.end());
+        timer_type::blocking_delay(timer_type::milliseconds(100U));
+        mcal::uart::the_uart.send( static_cast<std::uint8_t>((adc_conversion_value>>8) & 0xFF) + 0x30);
+        timer_type::blocking_delay(timer_type::milliseconds(100U));
+        mcal::uart::the_uart.send( static_cast<std::uint8_t>(adc_conversion_value & 0xFF) + 0x30);
+        timer_type::blocking_delay(timer_type::milliseconds(100U));
+      }
 
       // LED ON
       hal::led::user_led_pin.set_pin_low();
       timer_type::blocking_delay(timer_type::seconds(1U));
-
       mcal::uart::the_uart.send('\n');
       timer_type::blocking_delay(timer_type::milliseconds(100U));
       mcal::uart::the_uart.send('\r');
-
     }
 
   //Wait forever.

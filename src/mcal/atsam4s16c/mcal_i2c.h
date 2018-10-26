@@ -234,10 +234,10 @@ namespace mcal
 
   };
 
-    extern i2c_communication<std::uint32_t,
+    /*    extern i2c_communication<std::uint32_t,
                              std::uint8_t,
                              mcal::reg::twi0_base> the_i2c_0;
-
+    */
     extern mcal::port::port_pin<std::uint32_t,
                                 std::uint32_t,
                                 mcal::reg::pioa_base,

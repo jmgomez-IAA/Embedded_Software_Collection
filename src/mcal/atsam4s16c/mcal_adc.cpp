@@ -44,7 +44,7 @@ mcal::port::port_pin<std::uint32_t,
 // This adc object should be for each pin? And The static for all?
 //The ADC1, is for pin 1, ADC2 for pin 2, etc.
 mcal::adc::adc_device<std::uint32_t,
-                          std::uint8_t,
+                          std::uint32_t,
                           mcal::reg::adc_base> mcal::adc::the_adc;
 
 void mcal::adc::init(const config_type *)
@@ -86,6 +86,6 @@ extern "C" void __vector_adc_handler() __attribute__((used, noinline));
                                                                     mcal::reg::ad0_data_register>::reg_get();
 
   adc_value = static_cast<std::uint32_t>(channel0_conversion_value);
-
+  mcal::adc::the_adc.conversion_is_active = false;
 
 }

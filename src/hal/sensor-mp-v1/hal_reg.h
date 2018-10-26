@@ -35,7 +35,7 @@
       constexpr std::uint32_t user_button_id  =  UINT32_C(13); // sw2_button_pin;
       constexpr std::uint32_t sw3_button_id   =  UINT32_C(26); // sw3_button_pin;
 
-
+      // Define Sw, address switch
       constexpr std::uint32_t addr0_button_id = UINT32_C(0);
       constexpr std::uint32_t addr1_button_id = UINT32_C(1);
       constexpr std::uint32_t addr2_button_id = UINT32_C(2);
@@ -45,6 +45,8 @@
       constexpr std::uint32_t addr6_button_id = UINT32_C(11);
       constexpr std::uint32_t addr7_button_id = UINT32_C(12);
 
+      // Define Rele, pin as PA20.
+      constexpr std::uint32_t rele_id   =  UINT32_C(20); // PA20
     }
   }
 #endif //HAL_REG_ESC_H_

@@ -14,5 +14,6 @@ void hal::init()
 
   hal::led::init(nullptr);
   hal::sw::init(nullptr);
+  hal::rele::init(nullptr);
 
 }
