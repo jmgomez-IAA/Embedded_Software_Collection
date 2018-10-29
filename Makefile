@@ -58,16 +58,17 @@ SRC = src/sys/start/${MCAL}/crt0.cpp \
       src/mcal/${MCAL}/mcal_gpt.cpp\
 	  src/mcal/${MCAL}/mcal_uart.cpp\
 	  src/mcal/${MCAL}/mcal_i2c.cpp\
+	  src/mcal/${MCAL}/mcal_adc.cpp\
       src/hal/hal.cpp src/hal/${PLATFORM}/hal_led.cpp\
       src/hal/${PLATFORM}/hal_sw.cpp
 
 OBJ =  $(addprefix $(BUILD_DIR),$(patsubst %.cpp,%.o,$(SRC)))
 
-PROGRAM = src/app/pio_periph_test.cpp src/app/pio_periph_test.cpp src/app/uart_periph_test.cpp  src/app/flash_periph_test.cpp
+PROGRAM = src/app/pio_periph_test.cpp src/app/pio_periph_test.cpp src/app/uart_periph_test.cpp src/app/adc_periph_test.cpp  src/app/flash_periph_test.cpp
 
 .PHONY = all
 
-all: pio_periph systick_periph uart_periph i2c_periph flash_periph
+all: pio_periph systick_periph uart_periph i2c_periph flash_periph adc_periph
 	echo "All done..."
 	echo "sudo ${FLASH} -bpv -t atmel_cm4 -f bin/program_to_test.elf.bin"
 
@@ -98,6 +99,12 @@ $(BIN_DIR)uart_periph_test.elf: $(BUILD_DIR)src/app/uart_periph_test.o $(OBJ)
 $(BIN_DIR)i2c_periph_test.elf: $(BUILD_DIR)src/app/i2c_periph_test.o $(OBJ)
 	mkdir -p $(@D)
 	${LD} -g  $(LDFLAGS) $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/i2c_periph_test.map"
+	${SIZE} $@
+	${OBJDUMP} -D -S $@ > $@.list
+
+$(BIN_DIR)adc_periph_test.elf: $(BUILD_DIR)src/app/adc_periph_test.o $(OBJ)
+	mkdir -p $(@D)
+	${LD} -g  $(LDFLAGS) $^ -o $@ -Wl,-Map="$(BUILD_DIR)src/app/adc_periph_test.map"
 	${SIZE} $@
 	${OBJDUMP} -D -S $@ > $@.list
 
@@ -133,6 +140,10 @@ $(BUILD_DIR)src/app/flash_periph_test.o: src/app/flash_periph_test.cpp
 	mkdir -p $(@D)
 	${CXX} $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -o $@ -c $^
 
+$(BUILD_DIR)src/app/adc_periph_test.o: src/app/adc_periph_test.cpp
+	mkdir -p $(@D)
+	${CXX} $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -o $@ -c $^
+
 $(BUILD_DIR)%.o: %.cpp
 	mkdir -p $(@D)
 	$(CXX)  $(CXXFLAGS) $(CPPFLAGS) $(CINCLUDES) -c $< -o $@
@@ -159,6 +170,11 @@ uart_periph: $(BIN_DIR)uart_periph_test.elf
 
 i2c_periph: $(BIN_DIR)i2c_periph_test.elf
 	echo "Building I2C  Peripheral Test Program."
+	${OBJCOPY} -O ihex $^ $^.hex
+	${OBJCOPY} -O binary $^ $^.bin
+
+adc_periph: $(BIN_DIR)adc_periph_test.elf
+	echo "Building ADC  Peripheral Test Program."
 	${OBJCOPY} -O ihex $^ $^.hex
 	${OBJCOPY} -O binary $^ $^.bin
 

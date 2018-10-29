@@ -21,6 +21,7 @@ extern "C" void __sys_tick_handler   () __attribute__((used, noinline, weak));
 extern "C" void __vector_timer4      () __attribute__((used, noinline));
 //extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
 extern "C" void __vector_pio_a_handler() __attribute__((used, noinline, weak));
+extern "C" void __vector_adc_handler() __attribute__((used, noinline, weak));
 
 // Unused irq simply halts.
 
@@ -36,7 +37,7 @@ extern "C" void __pend_sv_handler    () { for(;;) { mcal::cpu::nop(); } }
 extern "C" void __sys_tick_handler   () { for(;;) { mcal::cpu::nop(); } }
 //extern "C" void __vector_uart1_rx_tx_handler () { for(;;) { mcal::cpu::nop(); } }
 extern "C" void __vector_pio_a_handler () {  for (;;) {mcal::cpu::nop();}  }
-
+extern "C" void __vector_adc_handler () {  for (;;) {mcal::cpu::nop();}  }
 namespace
 {
   typedef void (*isr_type)();
@@ -83,20 +84,20 @@ const volatile std::array<isr_type, number_of_interrupts> __isr_vector =
   __vector_unused_irq,       // 0x0074, 29, dma_channel3 irq handler, PIOC
   __vector_unused_irq,       // 0x0078, 30, dma_channel4 irq handler, USART0
   __vector_unused_irq,       // 0x007C, 31, dma_channel5 irq handler, USART1
-  __vector_unused_irq,       // 0x0080, 32, dma_channel6 irq handler,
-  __vector_unused_irq,       // 0x0084, 33, dma_channel7 irq handler,
-  __vector_unused_irq,       // 0x0088, 34, adc irq handler, mci
-  __vector_unused_irq,       // 0x008C, 35, usb_hp_can_tx irq handler, twi0
-  __vector_unused_irq,       // 0x0090, 36, usb_lp_can_rx0 irq handler, twi1
-  __vector_unused_irq,       // 0x0094, 37, can_rx1 irq handler, spi
-  __vector_unused_irq,       // 0x0098, 38, can_sce irq handler, ssc
-  __vector_unused_irq,       // 0x009C, 39, exti9_5 irq handler, tc0
-  __vector_unused_irq,       // 0x00A0, 40, tim1_brk irq handler,tc1
-  __vector_unused_irq,       // 0x00A4, 41, tim1_up irq handler, tc2
-  __vector_unused_irq,       // 0x00A8, 42, tim1_trg_com irq handler, tc3
-  __vector_unused_irq,       // 0x00AC, 43, tim1_cc irq handler, tc4
-  __vector_unused_irq,       // 0x00B0, 44, tim2 irq handler, tc5
-  __vector_unused_irq,       // 0x00B4, 45, tim3 irq handler, adc
+  __vector_unused_irq,       // 0x0080, 32, dma_channel6 irq handler,16
+  __vector_unused_irq,       // 0x0084, 33, dma_channel7 irq handler,17
+  __vector_unused_irq,       // 0x0088, 34, adc irq handler, mci 18
+  __vector_unused_irq,       // 0x008C, 35, usb_hp_can_tx irq handler, twi0 19
+  __vector_unused_irq,       // 0x0090, 36, usb_lp_can_rx0 irq handler, twi1 20
+  __vector_unused_irq,       // 0x0094, 37, can_rx1 irq handler, spi 21
+  __vector_unused_irq,       // 0x0098, 38, can_sce irq handler, ssc <- 22
+  __vector_unused_irq,       // 0x009C, 39, exti9_5 irq handler, tc0 23
+  __vector_unused_irq,       // 0x00A0, 40, tim1_brk irq handler,tc1 24
+  __vector_unused_irq,       // 0x00A4, 41, tim1_up irq handler, tc2 25
+  __vector_unused_irq,       // 0x00A8, 42, tim1_trg_com irq handler, tc3 26
+  __vector_unused_irq,       // 0x00AC, 43, tim1_cc irq handler, tc4 27
+  __vector_unused_irq,       // 0x00B0, 44, tim2 irq handler, tc5 28
+  __vector_adc_handler,       // 0x00B4, 45, tim3 irq handler, 29  adc        <---
   __vector_unused_irq,       // 0x00B8, 46, tim4 irq handler, dac
   __vector_unused_irq,       // 0x00BC, 47, i2c1_ev irq handler, pwm
   __vector_unused_irq,       // 0x00C0, 48, i2c1_er irq handler, crc

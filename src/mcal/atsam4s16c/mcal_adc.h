@@ -23,6 +23,8 @@ namespace mcal
 
     void init(const config_type*);
 
+    // Hay que habilitar en PMC
+    // Hay que configurar en PIO_Controller.
     template <typename port_type,// std::uint32_t
               typename bval_type,// std::uint8_t
               port_type port>

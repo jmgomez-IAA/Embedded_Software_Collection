@@ -86,7 +86,6 @@
       constexpr std::uint32_t pioc_periph_id  = 13;
       constexpr std::uint32_t pioc_base       = periph_base        + UINT32_C(0xE1200);
 
-
       constexpr std::uint32_t piob_per        = piob_base       + UINT32_C(0x00);
       constexpr std::uint32_t piob_pdr        = piob_base       + UINT32_C(0x04);
       constexpr std::uint32_t piob_psr        = piob_base       + UINT32_C(0x08);
