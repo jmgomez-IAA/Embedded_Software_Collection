@@ -22,6 +22,7 @@ extern "C" void __vector_timer4      () __attribute__((used, noinline));
 //extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
 extern "C" void __vector_pio_a_handler() __attribute__((used, noinline, weak));
 extern "C" void __vector_adc_handler() __attribute__((used, noinline, weak));
+extern "C" void __vector_tc1_handler() __attribute__((used, noinline, weak));
 
 // Unused irq simply halts.
 
@@ -38,6 +39,8 @@ extern "C" void __sys_tick_handler   () { for(;;) { mcal::cpu::nop(); } }
 //extern "C" void __vector_uart1_rx_tx_handler () { for(;;) { mcal::cpu::nop(); } }
 extern "C" void __vector_pio_a_handler () {  for (;;) {mcal::cpu::nop();}  }
 extern "C" void __vector_adc_handler () {  for (;;) {mcal::cpu::nop();}  }
+extern "C" void __vector_tc1_handler () {  for (;;) {mcal::cpu::nop();}  }
+
 
 namespace
 {
@@ -93,7 +96,7 @@ const volatile std::array<isr_type, number_of_interrupts> __isr_vector =
   __vector_unused_irq,       // 0x0094, 37, can_rx1 irq handler, spi
   __vector_unused_irq,       // 0x0098, 38, can_sce irq handler, ssc
   __vector_unused_irq,       // 0x009C, 39, exti9_5 irq handler, tc0
-  __vector_unused_irq,       // 0x00A0, 40, tim1_brk irq handler,tc1
+  __vector_tc1_handler,      // 0x00A0, 40, tim1_brk irq handler,tc1
   __vector_unused_irq,       // 0x00A4, 41, tim1_up irq handler, tc2
   __vector_unused_irq,       // 0x00A8, 42, tim1_trg_com irq handler, tc3
   __vector_unused_irq,       // 0x00AC, 43, tim1_cc irq handler, tc4

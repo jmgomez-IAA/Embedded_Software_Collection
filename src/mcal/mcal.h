@@ -20,6 +20,7 @@
 #include <mcal_flash.h>
 #include <mcal_adc.h>
 
+#include <mcal_ccp.h>
 namespace mcal
 {
   void init();

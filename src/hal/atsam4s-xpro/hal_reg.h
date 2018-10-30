@@ -29,6 +29,9 @@
       //
       constexpr std::uint32_t user_led_id        =  UINT32_C(23);
       constexpr std::uint32_t user_button_id     =  UINT32_C(2);
+
+      // Define the Flow metter pin.
+      constexpr std::uint32_t flow_sensor_id =   UINT32_C(16); // PA16
     }
   }
 #endif //HAL_REG_ESC_H_

@@ -45,6 +45,26 @@ namespace mcal
                             ~static_cast<std::uint32_t>(UINT32_C(0x01) << (bpos))>::reg_and();
         }
 
+        static void periphB_manage_pin()
+        {
+          // Disable the pin for PIO_Controller. Allows, periph to manage it.
+          mcal::reg::access<std::uint32_t,
+                            std::uint32_t,
+                            port_disable_register,
+                            static_cast<std::uint32_t>(UINT32_C(0x01) << (bpos))>::reg_or();
+
+          // Set the peripheral B to manage the pin. (00)
+          mcal::reg::access<std::uint32_t,
+                            std::uint32_t,
+                            peripheral_select_register,
+                            static_cast<std::uint32_t>(UINT32_C(0x01) << (bpos))>::reg_and();
+
+          mcal::reg::access<std::uint32_t,
+                            std::uint32_t,
+                            peripheral_select_register+0x4,
+                            ~static_cast<std::uint32_t>(UINT32_C(0x01) << (bpos))>::reg_and();
+        }
+
         static void set_direction_output()
         {
           // Set the port pin direction to digital output.

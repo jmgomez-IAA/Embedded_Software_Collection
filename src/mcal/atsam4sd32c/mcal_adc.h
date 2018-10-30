@@ -1,8 +1,9 @@
 /**
  * @file mcal_adc.h
  * @brief Microcontroller abstraction layer for the ADC on PC4 SAM4S.
- * @description Inicialization and definitions for the ADC on ___  pin
- * of the SAM4S board.
+ * @description Inicialization and definitions for the ADC on PA17 pin
+ * of the SAM4S board. There are 3 signals S[2..0] which controls the
+ * input mux of the ADC to select the channel to read.
  * @note The ADC are all inputs, no periphreal is need??
  * @author Juan Manuel Gomez Lopez <jmgomez@iaa.es>
  * @copyright 

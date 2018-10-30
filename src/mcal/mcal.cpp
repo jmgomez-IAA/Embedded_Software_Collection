@@ -20,5 +20,6 @@ void mcal::init()
   mcal::uart::init(nullptr);
   mcal::i2c::init(nullptr);
   mcal::adc::init(nullptr);
+  mcal::ccp::init(nullptr);
 
 }

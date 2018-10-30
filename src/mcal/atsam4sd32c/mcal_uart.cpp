@@ -31,7 +31,6 @@ void mcal::uart::init(const config_type *)
                     mcal::reg::pmc_pcer0,
                     static_cast<std::uint32_t>(UINT32_C(0x1 << 9))>::reg_or();
 
-
   mcal::uart::aurt1_tx_pin.periphA_manage_pin();
 
 }
