@@ -58,7 +58,6 @@ void mcal::i2c::init(const config_type *)
   mcal::i2c::twi0_data_pin.periphA_manage_pin();
   mcal::i2c::twi0_data_pin.enable_pull_up();
 
-
   //Enable TWI1 peripheral on PMC.
   /*
   mcal::reg::access<std::uint32_t,

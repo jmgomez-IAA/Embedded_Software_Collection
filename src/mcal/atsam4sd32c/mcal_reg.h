@@ -102,7 +102,9 @@
 
       // UART Peripheral Controller
       constexpr std::uint32_t uart0_base      = periph_base     + UINT32_C(0x000E0600);
+      constexpr std::uint32_t uart0_periph_id = 8;
       constexpr std::uint32_t uart1_base      = periph_base     + UINT32_C(0x000E0800);
+      constexpr std::uint32_t uart1_periph_id = 9;
 
 
       // TWI Peripheral Controller

@@ -45,7 +45,7 @@ namespace mcal
         mcal::reg::access<addr_type,
                           reg_type,
                           master_mode_register,
-                          static_cast<std::uint32_t>(UINT32_C(0x00680000))>::reg_set();
+                          static_cast<std::uint32_t>(UINT32_C(0x00400000))>::reg_set();
 
         // TWI set baudrate
         //0x11 => 10 us = 100 KHz =

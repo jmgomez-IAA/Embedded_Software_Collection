@@ -33,19 +33,32 @@ void mcal::uart::init(const config_type *)
 
   mcal::uart::aurt1_tx_pin.periphA_manage_pin();
 
+  //Enable the interrupt for the uart 1 device.
+  mcal::irq::enableIRQ(mcal::reg::uart1_periph_id);
+
+
 }
 
-/*
+std::uint32_t isr_counter = 0;
 extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
-void __vector_uart1_rx_tx_irq()
+void  __vector_uart1_rx_tx_handler()
 {
-  mcal::cpu::nop();
-*/
-  /*
+
   const std::uint32_t uart_status = mcal::reg::access<std::uint32_t,
                                                       std::uint32_t,
-                                                      mcal::uart::the_uart.uart_status_register>::reg_get();
+                                                      0x400E0814>::reg_get();
 
+
+  if (uart_status & 0x01)
+    {
+
+      const std::uint8_t byte_to_recv = mcal::reg::access<std::uint32_t,
+                                                          std::uint32_t,
+                                                          0x400E0818>::reg_get();
+      mcal::uart::the_uart.recv_buffer.push_front(byte_to_recv);
+
+    }
+  /*
   const bool send_buffer_is_empty = mcal::uart::the_uart.send_buffer.empty();
 
   if ( send_buffer_is_empty )
@@ -58,8 +71,8 @@ void __vector_uart1_rx_tx_irq()
 
       mcal::reg::dynamic_access<std::uint32_t,
                                 std::uint32_t>::reg_set(mcal::uart::the_uart.output_data_register, static_cast<std::uint32_t>(byte_to_send));
-    }
   */
+}
 
   /*
 
