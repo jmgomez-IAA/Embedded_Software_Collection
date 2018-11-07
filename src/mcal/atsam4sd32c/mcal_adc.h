@@ -1,24 +1,20 @@
 /**
  * @file mcal_adc.h
  * @brief Microcontroller abstraction layer for the ADC on PC4 SAM4S.
- * @description Inicialization and definitions for the ADC on ___  pin
- * of the SAM4S board.
+ * @description Inicialization and definitions for the ADC on PA17 pin
+ * of the SAM4S board. There are 3 signals S[2..0] which controls the
+ * input mux of the ADC to select the channel to read.
  * @note The ADC are all inputs, no periphreal is need??
  * @author Juan Manuel Gomez Lopez <jmgomez@iaa.es>
  * @copyright 
  */
-
-#ifndef _MCAL_ADC_SAM4S_EMBEDDED_2018_
-#define _MCAL_ADC_SAM4S_EMBEDDED_2018_
-
+#ifndef MCAL_ADC_SAM4SD32C_ESC_H_
+#define MCAL_ADC_SAM4SD32C_ESC_H_
 
 #include <cstdint>
-#include <mcal_cpu.h>
+#include <mcal/mcal.h>
 #include <mcal_reg_access.h>
 #include <algorithm>
-
-
-//extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
 
 namespace mcal
 {
@@ -28,8 +24,6 @@ namespace mcal
 
     void init(const config_type*);
 
-    // Hay que habilitar en PMC
-    // Hay que configurar en PIO_Controller.
     template <typename port_type,// std::uint32_t
               typename bval_type,// std::uint8_t
               port_type port>
@@ -40,56 +34,75 @@ namespace mcal
       typedef std::uint32_t addr_type;
       typedef std::uint32_t reg_type;
 
-      adc_device() : send_is_active(false)
+      adc_device() : conversion_is_active(false)
       {
         // Enable Rx and Tx
         mcal::reg::access<addr_type,
                           reg_type,
-                          uart_ctrl_register,
+                          adc_ctrl_register,
                           static_cast<std::uint32_t>(UINT32_C(0x00000050))>::reg_set();
 
 
-        // Set uart mode: Parity and channel mode
+        // Enable channel 0, which is the only one in use.
         mcal::reg::access<addr_type,
                           reg_type,
-                          uart_mode_register,
-                          static_cast<std::uint32_t>(UINT32_C(0x00000800))>::reg_set();
+                          channel_enable_register,
+                          static_cast<std::uint32_t>(UINT32_C(0x00000001))>::reg_set();
 
-        // Set baudrate: fpck/(16*baud_rate) =>
+        // Set ADC CLock 1 MHz
         mcal::reg::access<addr_type,
                           reg_type,
-                          baud_rate_gen_register,
-                          static_cast<std::uint32_t>(UINT32_C(0x0000001b))>::reg_set();
+                          analog_ctrl_register,
+                          static_cast<std::uint32_t>(UINT32_C(0x00010000))>::reg_set();
+
+        // Set prescaler: clk = (fcpu / (2*adc_freq)) -1 => (4000000 / (2*1000000))-1
+        mcal::reg::access<addr_type,
+                          reg_type,
+                          adc_mode_register,
+                          UINT32_C(0x00000100)>::reg_set();
 
         // Set interrupts
         mcal::reg::access<addr_type,
                           reg_type,
                           interrupt_enable_register,
-                          static_cast<std::uint32_t>(UINT32_C(0x00000000))>::reg_set();
+                          static_cast<std::uint32_t>(UINT32_C(0x00000001))>::reg_set();
       }
 
-      bool read(const bval_type byte_to_send)
+      bool read(bval_type &byte_to_send)
       {
 
-        if ( send_is_active )
+        /*
+        const adc_conversion_status =  mcal::reg::access<addr_type,
+                                                         reg_type,
+                                                         interrupt_status_register>::reg_get();*/
+        // Conversion is active.
+        if (conversion_is_active )
           {
             return false;
           }
         else{
-          send_is_active = true;
-          mcal::reg::dynamic_access<addr_type,
-                                    reg_type>::reg_set(output_data_register, static_cast<bval_type>(byte_to_send));
-          send_is_active = false;
+
+          const reg_type channel0_conversion_value = mcal::reg::access<addr_type,
+                                                                       reg_type,
+                                                                       ad0_data_register>::reg_get();
+
+          byte_to_send = static_cast<bval_type>(channel0_conversion_value);
+          return true;
         }
-        return true;
       }
 
-      bool start(bval_type &byte_to_recv)
+      bool start()
       {
-        byte_to_recv = mcal::reg::access<addr_type,
-                          reg_type,
-                          input_data_register>::reg_get();
 
+        if (conversion_is_active)
+          return false;
+
+        mcal::reg::access<addr_type,
+                          reg_type,
+                          adc_ctrl_register,
+                          static_cast<std::uint32_t>(UINT32_C(0x00000002))>::reg_set();
+
+        conversion_is_active = true;
         return true;
       }
 
@@ -102,14 +115,17 @@ namespace mcal
         return (channel_status & (0x1 << 0));
       }
 
-  private:
-      volatile bool send_is_active;
+      //    protected:
+
+      volatile bool conversion_is_active;
+    private:
+
 
       static constexpr addr_type adc_ctrl_register         = addr_type(port + 0x00UL);
       static constexpr addr_type adc_mode_register         = addr_type(port + 0x04UL);
 
       static constexpr addr_type channel_enable_register   = addr_type(port + 0x10UL);
-      static constexpr addr_type channel_enable_register   = addr_type(port + 0x14UL);
+      static constexpr addr_type channel_disable_register   = addr_type(port + 0x14UL);
       static constexpr addr_type channel_status_register   = addr_type(port + 0x18UL);
 
 
@@ -121,7 +137,10 @@ namespace mcal
       static constexpr addr_type interrupt_status_register  = addr_type(port + 0x30UL);
 
       // Last converted data register
-      static constexpr addr_type output_data_register       = addr_type(port + 0x20UL);
+      static constexpr addr_type output_data_register       = addr_type(port + 0x50UL);
+
+      // Contorl Freq
+      static constexpr addr_type analog_ctrl_register       = addr_type(port + 0x94UL);
 
       // Specific channel data register.
       static constexpr addr_type ad0_data_register          = addr_type(port + 0x50UL);
@@ -132,14 +151,42 @@ namespace mcal
 
 
       //      friend void __vector_uart1_rx_tx_irq();
+      //extern "C" void __vector_adc_handler() __attribute__((used, noinline));
+      friend void __vector_adc_handler();
 
   };
 
-    extern adc_peripheral<std::uint32_t,
-                          std::uint8_t,
+    // ADC Input pin.
+    extern mcal::port::port_pin<std::uint32_t,
+                                std::uint32_t,
+                                mcal::reg::pioa_base,
+                                UINT32_C(17) > adc_input_pin;
+
+    //Multiplexor pins for ADC signal.
+    extern mcal::port::port_pin<std::uint32_t,
+                                std::uint32_t,
+                                mcal::reg::pioa_base,
+                                UINT32_C(18) > adc_mux0_pin;
+
+    //Multiplexor pins for ADC signal.
+    extern mcal::port::port_pin<std::uint32_t,
+                                std::uint32_t,
+                                mcal::reg::piob_base,
+                                UINT32_C(1) > adc_mux1_pin;
+
+    //Multiplexor pins for ADC signal.
+    extern mcal::port::port_pin<std::uint32_t,
+                                std::uint32_t,
+                                mcal::reg::piob_base,
+                                UINT32_C(0) > adc_mux2_pin;
+
+    extern adc_device<std::uint32_t,
+                          std::uint32_t,
                           mcal::reg::adc_base> the_adc;
+
+    extern std::uint32_t adc_value;
 }
 
 }
 
-#endif  //_MCAL_ADC_SAM4S_EMBEDDED_2018
+#endif  //MCAL_ADC_SAM4SD32C_ESC_H_

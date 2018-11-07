@@ -1,8 +1,9 @@
 /**
- * @file adc_periph_test.cpp
- * @brief Enables the adc peripheral of the SAM4S.
- * @description The test-unit enables the adc peripheral
- * on the SAM4S device and rel
+ * @file tc_periph_test.cpp
+ * @brief Enables the tc peripheral of the SAM4S.
+ * @description The test-unit enables the tc peripheral
+ * on the SAM4S device and measures the freq in TIOB
+ * using the compare function.
  *
  * @note No interruption, Fpck = 4 MHz.
  * @author Juan Manuel Gómez López <jmgomez@iaa.es>
@@ -15,9 +16,11 @@
 #include <util/utility/util_time.h>
 
 #include <array>
+#include <iterator>
 
 namespace{
   typedef util::timer<std::uint32_t> timer_type;
+  timer_type app_timer(timer_type::seconds(1U));
 
   void debug_register(const std::array<std::uint8_t, 10> &msg, std::uint32_t* reg)
   {
@@ -68,49 +71,49 @@ int main()
   mcal::init();
   hal::init();
 
-  const std::array<std::uint8_t, 10> welcome_msg_s = {'A', 'D', 'C', ' ','T', 'e','s', 't', '\n', '\r'};
-  const std::array<std::uint8_t, 10> ch0data_reg_s = {'A', 'D', 'C', ' ','D', 'a', 't', 'a',':', ' '};
+  const std::array<std::uint8_t, 10> welcome_msg_s = {'F', 'L', 'W', ' ','T', 'e','s', 't', '\n', '\r'};
+  const std::array<std::uint8_t, 10> flow_data_reg_s = {'F', 'L', 'W', ' ','D', 'a', 't', 'a',':', ' '};
 
-  unsigned char byte_to_recv = 0;
-
-  mcal::adc::adc_mux0_pin.set_pin_high();
-  mcal::adc::adc_mux1_pin.set_pin_high();
-  mcal::adc::adc_mux2_pin.set_pin_high();
+  std::uint32_t *countera_value_ptr = reinterpret_cast<std::uint32_t *>(0x40010054);
+  std::uint32_t counter_value = 0x00120012;
 
   mcal::uart::the_uart.send_n( welcome_msg_s.begin(), welcome_msg_s.end());
+  mcal::irq::enableIRQ(24);
 
-  std::uint32_t adc_conversion_value = 0x12340201;
+
+  mcal::port::port_pin<std::uint32_t,
+                       std::uint32_t,
+                       mcal::reg::pioa_base,
+                       UINT32_C(13) > clk_gen_pin;
+
+  clk_gen_pin.set_direction_output();
+  clk_gen_pin.disable_pull_up();
+  clk_gen_pin.enable_pull_down();
+
+  app_timer.start_interval(timer_type::seconds(10U));
   while (1)
     {
-      byte_to_recv = 0;
-      std::uint32_t counter = 0;
-      // LED OFF
 
-      hal::led::user_led_pin.set_pin_high();
-      timer_type::blocking_delay(timer_type::seconds(1U));
-
-      if (! mcal::adc::the_adc.start() )
+      if ( app_timer.timeout() )
         {
-          mcal::uart::the_uart.send('e');
+          counter_value = mcal::ccp::get_freq();
+          hexify( counter_value);
           timer_type::blocking_delay(timer_type::milliseconds(100U));
-          mcal::uart::the_uart.send('\n');
+          hexify(  *countera_value_ptr);
+          timer_type::blocking_delay(timer_type::milliseconds(100U));
+          mcal::uart::the_uart.send_n( flow_data_reg_s.begin(), flow_data_reg_s.end());
+          timer_type::blocking_delay(timer_type::milliseconds(100U));
+          app_timer.start_interval(timer_type::seconds(10U));
         }
-
-      timer_type::blocking_delay(timer_type::milliseconds(100U));
-      const bool adc_conversion_status = mcal::adc::the_adc.read(adc_conversion_value);
-
-      if (adc_conversion_status){
-        mcal::uart::the_uart.send_n( ch0data_reg_s.begin(), ch0data_reg_s.end());
-        timer_type::blocking_delay(timer_type::milliseconds(100U));
-        hexify(adc_conversion_value);
-      }
 
       // LED ON
       hal::led::user_led_pin.set_pin_low();
-      timer_type::blocking_delay(timer_type::seconds(1U));
-      mcal::uart::the_uart.send('\n');
-      timer_type::blocking_delay(timer_type::milliseconds(100U));
-      mcal::uart::the_uart.send('\r');
+      clk_gen_pin.set_pin_low();
+      timer_type::blocking_delay(timer_type::milliseconds(200U));
+
+      hal::led::user_led_pin.set_pin_high();
+      clk_gen_pin.set_pin_high();
+      timer_type::blocking_delay(timer_type::milliseconds(200U));
     }
 
   //Wait forever.

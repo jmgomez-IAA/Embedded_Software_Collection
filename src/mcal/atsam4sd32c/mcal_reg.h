@@ -102,7 +102,9 @@
 
       // UART Peripheral Controller
       constexpr std::uint32_t uart0_base      = periph_base     + UINT32_C(0x000E0600);
+      constexpr std::uint32_t uart0_periph_id = 8;
       constexpr std::uint32_t uart1_base      = periph_base     + UINT32_C(0x000E0800);
+      constexpr std::uint32_t uart1_periph_id = 9;
 
 
       // TWI Peripheral Controller
@@ -111,6 +113,7 @@
 
       // ADC Peripheral Controller
       constexpr std::uint32_t adc_base        = periph_base     + UINT32_C(0x00038000);
+      constexpr std::uint32_t ad0_data_register =  adc_base     + UINT32_C(0x00000050);
 
       constexpr std::uint32_t flash_r_base    = ahb1periph_base + UINT32_C(0x00003C00);
 
@@ -128,6 +131,16 @@
       constexpr std::uint32_t gpio_base = 0x0;
 
       // Timer Registers
+      constexpr std::uint32_t tc0_base        = periph_base     + UINT32_C(0x00010000);
+      constexpr std::uint32_t tc00_base       = periph_base     + UINT32_C(0x00010000);
+      constexpr std::uint32_t tc01_base       = periph_base     + UINT32_C(0x00010040);
+      constexpr std::uint32_t tc02_base       = periph_base     + UINT32_C(0x00010080);
+
+      constexpr std::uint32_t tc1_base        = periph_base     + UINT32_C(0x00014000);
+      constexpr std::uint32_t tc10_base       = periph_base     + UINT32_C(0x00014000);
+      constexpr std::uint32_t tc11_base       = periph_base     + UINT32_C(0x00014040);
+      constexpr std::uint32_t tc12_base       = periph_base     + UINT32_C(0x00014080);
+
       constexpr std::uint32_t tim4_base = 0x0;
 
       // Watchdog Controller Registers

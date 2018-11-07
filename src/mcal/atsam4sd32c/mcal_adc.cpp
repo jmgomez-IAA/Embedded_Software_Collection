@@ -12,6 +12,40 @@
 #include <mcal_port.h>
 #include <mcal_reg_access.h>
 
+namespace
+{
+  volatile std::uint32_t adc_value;
+}
+
+// ADC Input pin.
+mcal::port::port_pin<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::pioa_base,
+                    UINT32_C(17) > mcal::adc::adc_input_pin;
+
+//Multiplexor pins for ADC signal.
+mcal::port::port_pin<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::pioa_base,
+                    UINT32_C(18) > mcal::adc::adc_mux0_pin;
+
+//Multiplexor pins for ADC signal.
+mcal::port::port_pin<std::uint32_t,
+                     std::uint32_t,
+                     mcal::reg::piob_base,
+                    UINT32_C(1) > mcal::adc::adc_mux1_pin;
+
+//Multiplexor pins for ADC signal.
+mcal::port::port_pin<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::piob_base,
+                    UINT32_C(0) > mcal::adc::adc_mux2_pin;
+
+// This adc object should be for each pin? And The static for all?
+//The ADC1, is for pin 1, ADC2 for pin 2, etc.
+mcal::adc::adc_device<std::uint32_t,
+                          std::uint32_t,
+                          mcal::reg::adc_base> mcal::adc::the_adc;
 
 void mcal::adc::init(const config_type *)
 {
@@ -22,60 +56,36 @@ void mcal::adc::init(const config_type *)
                     mcal::reg::pmc_pcer0,
                     static_cast<std::uint32_t>(UINT32_C(0x1 << 29))>::reg_or();
 
+  adc_input_pin.set_direction_input();
+
+  // Set all as inputs.
+  mcal::adc::adc_mux0_pin.set_direction_output();
+  //mcal::adc::adc_mux0_pin.enable_pull_up();
+
+  mcal::adc::adc_mux1_pin.set_direction_output();
+  //mcal::adc::adc_mux1_pin.enable_pull_up();
+
+  mcal::adc::adc_mux2_pin.set_direction_output();
+  //  mcal::adc::adc_mux2_pin.enable_pull_up();
+
+
+  //Enable ADC Peripheral Interrupts
+  mcal::reg::access<std::uint32_t,
+                    std::uint32_t,
+                    mcal::reg::nvic_iser0,
+                    static_cast<std::uint32_t>(UINT32_C(0x1 << 29))>::reg_or();
 }
 
-// This adc object should be for each pin? And The static for all?
-//The ADC1, is for pin 1, ADC2 for pin 2, etc.
-mcal::adc::adc_peripheral<std::uint32_t,
-                      std::uint8_t,
-                                 mcal::reg::adc_base> mcal::adc::the_adc;
 
-
-
-/*
-extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
-void __vector_uart1_rx_tx_irq()
+extern "C" void __vector_adc_handler() __attribute__((used, noinline));
+  void __vector_adc_handler()
 {
-  mcal::cpu::nop();
-*/
-  /*
-  const std::uint32_t uart_status = mcal::reg::access<std::uint32_t,
-                                                      std::uint32_t,
-                                                      mcal::uart::the_uart.uart_status_register>::reg_get();
 
-  const bool send_buffer_is_empty = mcal::uart::the_uart.send_buffer.empty();
+  const std::uint32_t channel0_conversion_value = mcal::reg::access<std::uint32_t,
+                                                                    std::uint32_t,
+                                                                    mcal::reg::ad0_data_register>::reg_get();
 
-  if ( send_buffer_is_empty )
-    {
-      mcal::uart::the_uart.send_is_active = false;
-    }
-  else
-    {
-      std::uint8_t byte_to_send = mcal::uart::the_uart.send_buffer.front();
+  adc_value = static_cast<std::uint32_t>(channel0_conversion_value);
+  mcal::adc::the_adc.conversion_is_active = false;
 
-      mcal::reg::dynamic_access<std::uint32_t,
-                                std::uint32_t>::reg_set(mcal::uart::the_uart.output_data_register, static_cast<std::uint32_t>(byte_to_send));
-    }
-  */
-
-  /*
-
-
-  if ( uart_status & (0x1 << 0) )
-  {
-  //Packet received.
-  mcal::reg::dynamic_access<addr_type,
-  reg_type>::reg_set(output_data_register, static_cast<bval_type>(byte_to_send));
-
-  byte_to_recv = mcal::reg::access<addr_type,
-  reg_type,
-  input_data_register>::reg_get();
-
-  byte_to_recv = mcal::reg::access<addr_type,
-  reg_type,
-  input_data_register>::reg_get();
-
-  recv_buffer.append(byte_to_recv);
-
-  */
-//}
+}

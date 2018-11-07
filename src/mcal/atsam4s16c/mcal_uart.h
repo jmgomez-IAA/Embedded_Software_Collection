@@ -13,10 +13,14 @@
 
 #include <mcal/mcal.h>
 #include <cstdint>
+
+#include <util/utility/util_circular_buffer.h>
+
+#include <array>
 #include <algorithm>
 
 
-//extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
+extern "C" void __vector_uart1_rx_tx_handler() __attribute__((used, noinline));
 
 namespace mcal
 {
@@ -36,8 +40,9 @@ namespace mcal
     public:
       typedef std::uint32_t addr_type;
       typedef std::uint32_t reg_type;
+      typedef util::circular_buffer<std::uint8_t,32> data_type;
 
-      uart_communication() : send_is_active(false)
+      uart_communication() : send_is_active(false), recv_ready(false)
       {
         // Enable Rx and Tx
         mcal::reg::access<addr_type,
@@ -58,11 +63,12 @@ namespace mcal
                           baud_rate_gen_register,
                           static_cast<std::uint32_t>(UINT32_C(0x0000001b))>::reg_set();
 
-        // Set interrupts
+        // Enable interrupts:
+        // Receive task is the only one.
         mcal::reg::access<addr_type,
                           reg_type,
                           interrupt_enable_register,
-                          static_cast<std::uint32_t>(UINT32_C(0x00000000))>::reg_set();
+                          static_cast<std::uint32_t>(UINT32_C(0x00000001))>::reg_set();
       }
 
       bool send(const bval_type byte_to_send)
@@ -97,10 +103,16 @@ namespace mcal
 
             send_result &= send(std::uint8_t(value));
 
-            for (int i=0; i < 1000; ++i)
-              for (int j=0; j< 100; ++j)
+
+            volatile std::uint32_t uart_status = mcal::reg::access<std::uint32_t,
+                                                                   std::uint32_t,
+                                                                   uart_status_register>::reg_get();
+            while (! (uart_status & 0x00000002) )
               {
-                mcal::cpu::nop();
+                uart_status = mcal::reg::access<std::uint32_t,
+                                                std::uint32_t,
+                                                uart_status_register>::reg_get();
+
               }
 
             ++first;
@@ -109,26 +121,52 @@ namespace mcal
         return send_result;
       }
 
+      /**
+       *
+       */
+      template<typename recv_iterator_type>
+      bool recv_n(recv_iterator_type first,
+                  recv_iterator_type last)
+      {
+        bool recv_result = true;
+
+        std::copy(recv_buffer.rbegin(), recv_buffer.rend(), first);
+        recv_buffer.clear();
+        return true;
+
+      }
+
+      /**
+       *
+       */
       bool recv(bval_type &byte_to_recv)
       {
-        byte_to_recv = mcal::reg::access<addr_type,
-                          reg_type,
-                          input_data_register>::reg_get();
 
-        return true;
+        const std::uint32_t received_elements = receive_ready();
+        if (received_elements != 0)
+          {
+            byte_to_recv = recv_buffer.front();
+            //recv_buffer.pop_back();
+            //            byte_to_recv = 'F';
+            return true;
+          }
+        else
+          {
+            return false;
+          }
       }
 
       //Checks if there is data to receive.
-      bool receive_ready()
+      std::uint32_t receive_ready()
       {
-        reg_type uart_status = mcal::reg::access<addr_type,
-                                         reg_type,
-                                         uart_status_register>::reg_get();
-        return (uart_status & (0x1 << 0));
+        return recv_buffer.size();
       }
 
   private:
       volatile bool send_is_active;
+      volatile bool recv_ready;
+      data_type send_buffer;
+      data_type recv_buffer;
 
       static constexpr addr_type uart_ctrl_register         = addr_type(port + 0x00UL);
       static constexpr addr_type uart_mode_register         = addr_type(port + 0x04UL);
@@ -142,7 +180,7 @@ namespace mcal
       static constexpr addr_type output_data_register       = addr_type(port + 0x1CUL);
       static constexpr addr_type input_data_register        = addr_type(port + 0x18UL);
 
-      //      friend void __vector_uart1_rx_tx_irq();
+      friend void ::__vector_uart1_rx_tx_handler();
 
   };
 
