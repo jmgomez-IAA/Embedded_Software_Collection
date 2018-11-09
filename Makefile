@@ -34,7 +34,8 @@ INCLUDES = src/
 LIBS = src/
 
 CPPFLAGS =  -mcpu=${ARCH} -qbsp=${MCAL} -mfix-gr712rc -msoft-float -mflat\
-            -g -O2 -Wall -Wextra -pedantic -fsigned-char -fno-exceptions
+            -g -O2 -Wall -Wextra -pedantic -fsigned-char -fno-exceptions \
+	    -lm -lbcc
 
 CXXFLAGS = -std=c++11
 
@@ -44,7 +45,7 @@ CINCLUDES = -Isrc \
             -Isrc/util/STL \
             -Isrc/sys/start/${MCAL}
 
-LDFLAGS = -T linkcmds-ahbram 
+LDFLAGS = -T gr712rc-ahbram -L src/sys/start/${MCAL}
 
 SRC = src/mcal/mcal.cpp \
       src/mcal/${MCAL}/mcal_cpu.cpp\

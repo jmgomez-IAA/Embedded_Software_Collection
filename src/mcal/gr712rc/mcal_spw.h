@@ -13,7 +13,6 @@
 #include <mcal_reg_access.h>
 #include <algorithm>
 
-
 namespace mcal
 {
 namespace spw
@@ -54,7 +53,6 @@ class  spw_communication
   typedef std::uint32_t *data_buffer_type;
   typedef std::uint32_t *packet_buffer_type;
 
-
   /**
    * @brief Init the Spacewire IP Core.
    */
@@ -82,7 +80,7 @@ class  spw_communication
                       reg_type,
                       dma_tx_descriptor_register,
                       send_descriptor_table_base>::reg_set();
-    
+
     // Set Node Address to 
     mcal::reg::access<addr_type,
                       reg_type,
@@ -93,14 +91,12 @@ class  spw_communication
     mcal::reg::access<addr_type,
                       reg_type,
                       baudrate_register,
-                      0x0909>::reg_set();
+                      0x00000900>::reg_set();
 
     mcal::reg::access<addr_type,
                       reg_type,
                       ctrl_register,
-                      0x0022>::reg_set();
-
-
+                      0x00000822>::reg_set();
   }
 
   bool link_state()
@@ -116,6 +112,28 @@ class  spw_communication
 
     return link_status;
   }
+
+  bool disable_link()
+  {
+
+    mcal::reg::access<addr_type,
+                      reg_type,
+                      dma_ctrl_register,
+                      UINT32_C(0x00000000)>::reg_set();
+
+    mcal::reg::access<addr_type,
+                      reg_type,
+                      ctrl_register,
+                      UINT32_C(0x00000001)>::reg_set();    
+
+    const std::uint32_t link_status =  mcal::reg::access<addr_type,
+                                                         reg_type,
+                                                         status_register>::reg_get();
+
+    return ( (link_status >>21) < 3);
+  }
+
+
 
   /**
    * @brief Add data to the actual descriptor and enable the transfer.
@@ -198,19 +216,22 @@ class  spw_communication
     //    const send_value_type value(*first);
     std::uint32_t dbuff_size = sizeof(send_value_type)*(last-first);
 
-
-
     send_descriptor_table[send_descriptor_it].header_buffer_address = reinterpret_cast<std::uint32_t>(first);
-    send_descriptor_table[send_descriptor_it].data_buffer_length =  dbuff_size;
+    send_descriptor_table[send_descriptor_it].data_buffer_length =  8; //dbuff_size;
     send_descriptor_table[send_descriptor_it].data_buffer_address = reinterpret_cast<std::uint32_t>(first + 0x10);
 
     // Activate Enable Flag and set the header size.
-    send_descriptor_table[send_descriptor_it].control |= 0x00001000 | 0x8;
-
-    send_descriptor_it ++;
     //If WRAP enabled, next descriptor is 0.
-    if ( descriptor_status & 0x00002000 )
+    if ( descriptor_status &  0x00002000 )
+    {
+      send_descriptor_table[send_descriptor_it].control = 0x00033000 | 0x8;
       send_descriptor_it = 0;
+    }
+    else
+    {
+      send_descriptor_table[send_descriptor_it].control = 0x00031000 | 0x8;
+      send_descriptor_it ++;
+    }
 
     // enable the transmision of the Core. That migh be done once.
     mcal::reg::access<addr_type,
@@ -240,6 +261,33 @@ class  spw_communication
 
     return true;
   }
+
+  //Get timecode from the register.
+  bool get_timecode(std::uint32_t &time_to_recv)
+  {
+
+    const reg_type link_status = mcal::reg::access<addr_type,
+                                                    reg_type,
+                                                    status_register>::reg_get();
+
+    if ( link_status & 0x1)
+    {
+      time_to_recv = mcal::reg::access<addr_type,
+                                                reg_type,
+                                                time_register>::reg_get();
+      
+
+      mcal::reg::access<addr_type,
+                        reg_type,
+                        status_register,
+                        UINT32_C(0x1 <<  0)>::reg_or();
+
+      return true;
+    }
+
+    return false;
+  }
+
 
   //Checks if there is data to receive.
   bool receive_ready()
